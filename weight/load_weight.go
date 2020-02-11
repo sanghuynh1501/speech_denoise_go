@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/utahta/go-openuri"
 )
 
 type Weight struct {
@@ -19,8 +21,8 @@ type Data struct {
 }
 
 func Load() []Weight {
-	// dataFile, err_file_out := openuri.Open("http://localhost:3000/integerdata.gob")
-	dataFile, err_file_out := os.Open("integerdata.gob")
+	dataFile, err_file_out := openuri.Open("http://localhost:3000/integerdata.gob")
+	// dataFile, err_file_out := os.Open("integerdata.gob")
 	if err_file_out != nil {
 		fmt.Println(err_file_out)
 		os.Exit(1)
