@@ -173,9 +173,9 @@ func (m *convnet) fwd(g *gorgonia.ExprGraph, x *gorgonia.Node, n_layers int, ksz
 	return
 }
 
-func floatToString(input_num float64) string {
+func floatToString(input_num float64, number int) string {
 	// to convert a float number to a string
-	return strconv.FormatFloat(input_num, 'f', 18, 64)
+	return strconv.FormatFloat(input_num, 'f', number, 64)
 }
 
 func getAudio() []float64 {
@@ -223,6 +223,14 @@ func predict(weights_array []weight.Weight, n_layers int, ksz int, input []float
 	return m.out.Value().Data().([]float64)
 }
 
+func update_percent(percent float64) {
+	doc := js.Global().Get("document")
+	percent_elements := doc.Call("getElementsByClassName", "ant-progress-bg")
+	percent_elements.Index(0).Get("style").Set("width", floatToString(percent*100, 1)+"%")
+	text_elements := doc.Call("getElementsByClassName", "ant-progress-text")
+	text_elements.Index(0).Set("innerHTML", floatToString(percent*100, 1)+"%")
+}
+
 func main() {
 	dtype.Init_dtype()
 
@@ -254,16 +262,18 @@ func main() {
 	var sub_array []float64
 	var sample float64
 
-	for i := 0; i < len(audio_array); i += 2200 {
-		if i+2200 < len(audio_array) {
-			sub_array = audio_array[i : i+2200]
+	for i := 0; i < len(audio_array); i += 2000 {
+		if i+2000 < len(audio_array) {
+			sub_array = audio_array[i : i+2000]
 		} else {
 			sub_array = audio_array[i:len(audio_array)]
 		}
 		predict_array = predict(weights_array, n_layers, ksz, sub_array)
 		for _, sample = range predict_array {
-			result_array = append(result_array, floatToString(sample))
+			result_array = append(result_array, floatToString(sample, 18))
 		}
+		percent := float64(len(result_array)) / float64(len(audio_array))
+		update_percent(percent)
 	}
 
 	log.Println("result_array ", result_array)
