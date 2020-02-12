@@ -76,33 +76,36 @@ func newConvNet(g *gorgonia.ExprGraph, n_layers int, n_channels int, ksz int, we
 
 	in_channels := 1
 	for i := 0; i < n_layers+1; i++ {
+		log.Println("len(weights_array[i].W0) ", len(weights_array[i].W0))
+	}
+	for i := 0; i < n_layers+1; i++ {
 		var w *gorgonia.Node
 		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(n_channels, in_channels, 1, ksz), gorgonia.WithName("conv_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(n_channels, in_channels, 1, ksz), weights_array[i].Conv2D))
 		convWeights = append(convWeights, w)
 
-		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 1), gorgonia.WithName("norm_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 1), weights_array[i].BatchNorm))
+		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("norm_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, in_channels, 4000), weights_array[i].BatchNorm))
 		normWeights = append(normWeights, w)
 
-		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, 1), gorgonia.WithName("w1_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, 1, 1, 1), weights_array[i].W0))
+		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w1_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, in_channels, 4000), weights_array[i].W0))
 		w1Weights = append(w1Weights, w)
 
-		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, 1), gorgonia.WithName("w2_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, 1, 1, 1), weights_array[i].W1))
+		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w2_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, in_channels, 4000), weights_array[i].W1))
 		w2Weights = append(w2Weights, w)
 
 		in_channels = n_channels
 	}
 
 	var w *gorgonia.Node
-	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, in_channels, 1, 1), gorgonia.WithName("conv_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, in_channels, 1, 1), weights_array[n_layers+1].Conv2D))
+	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, in_channels, in_channels, 4000), gorgonia.WithName("conv_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, in_channels, in_channels, 1), weights_array[n_layers+1].Conv2D))
 	convWeights = append(convWeights, w)
 
-	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, 1), gorgonia.WithName("norm_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, 1, 1, 1), weights_array[n_layers+1].BatchNorm))
+	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("norm_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, n_channels, in_channels, 4000), weights_array[n_layers+1].BatchNorm))
 	normWeights = append(normWeights, w)
 
-	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, 1), gorgonia.WithName("w1_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, 1, 1, 1), weights_array[n_layers+1].W0))
+	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w1_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, n_channels, in_channels, 4000), weights_array[n_layers+1].W0))
 	w1Weights = append(w1Weights, w)
 
-	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, 1), gorgonia.WithName("w2_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, 1, 1, 1), weights_array[n_layers+1].W1))
+	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w2_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, n_channels, in_channels, 4000), weights_array[n_layers+1].W1))
 	w2Weights = append(w2Weights, w)
 
 	return &convnet{
@@ -122,12 +125,12 @@ func (m *convnet) fwd(g *gorgonia.ExprGraph, x *gorgonia.Node, n_layers int, ksz
 			if x, err = gorgonia.Conv2d(x, m.convWeights[i], tensor.Shape{1, ksz}, []int{0, 1}, []int{1, 1}, []int{1, 1}); err != nil {
 				return errors.Wrap(err, "Layer 0 Convolution failed")
 			}
-			// norm := batch_norm.Batch_normalization(g, x, m.normWeights[i], 0.001, "layer"+strconv.FormatInt(int64(i), 10))
-			_, norm_weight, _ := gorgonia.Broadcast(x, m.normWeights[i], gorgonia.NewBroadcastPattern(nil, []byte{0, 2, 3}))
-			norm, _, _, _, _ := gorgonia.BatchNorm(x, initial_tensor(g, x, 1, "scale"), norm_weight, 0, 0.001)
-			x_w1, _ := gorgonia.BroadcastHadamardProd(x, m.w1Weights[i], nil, []byte{0, 1, 2, 3})
-			w2_norm, _ := gorgonia.BroadcastHadamardProd(norm, m.w2Weights[i], nil, []byte{0, 1, 2, 3})
-			x, _ = gorgonia.Add(x_w1, w2_norm)
+			// _, norm_weight, _ := gorgonia.Broadcast(x, m.normWeights[i], gorgonia.NewBroadcastPattern(nil, []byte{0, 2, 3}))
+			norm, _, _, _, _ := gorgonia.BatchNorm(x, initial_tensor(g, x, 1, "scale"), m.normWeights[i], 0, 0.001)
+			log.Println("norm_weight ", norm.Shape())
+			// x_w1, _ := gorgonia.BroadcastHadamardProd(x, m.w1Weights[i], nil, []byte{0, 1, 2, 3})
+			// w2_norm, _ := gorgonia.BroadcastHadamardProd(norm, m.w2Weights[i], nil, []byte{0, 1, 2, 3})
+			// x, _ = gorgonia.Add(x_w1, w2_norm)
 			if x, err = gorgonia.LeakyRelu(x, 0.2); err != nil {
 				return errors.Wrap(err, "Layer 0 activation failed")
 			}
@@ -136,12 +139,13 @@ func (m *convnet) fwd(g *gorgonia.ExprGraph, x *gorgonia.Node, n_layers int, ksz
 			if x, err = gorgonia.Conv2d(x, m.convWeights[i], tensor.Shape{1, ksz}, []int{0, int(math.Pow(2, float64(i)))}, []int{1, 1}, []int{1, int(math.Pow(2, float64(i)))}); err != nil {
 				return errors.Wrap(err, "Layer 0 Convolution failed")
 			}
-			// norm := batch_norm.Batch_normalization(g, x, m.normWeights[i], 0.001, "layer"+strconv.FormatInt(int64(i), 10))
-			_, norm_weight, _ := gorgonia.Broadcast(x, m.normWeights[i], gorgonia.NewBroadcastPattern(nil, []byte{0, 2, 3}))
-			norm, _, _, _, _ := gorgonia.BatchNorm(x, initial_tensor(g, x, 1, "scale"), norm_weight, 0, 0.001)
-			x_w1, _ := gorgonia.BroadcastHadamardProd(x, m.w1Weights[i], nil, []byte{0, 1, 2, 3})
-			w2_norm, _ := gorgonia.BroadcastHadamardProd(norm, m.w2Weights[i], nil, []byte{0, 1, 2, 3})
-			x, _ = gorgonia.Add(x_w1, w2_norm)
+			// _, norm_weight, _ := gorgonia.Broadcast(x, m.normWeights[i], gorgonia.NewBroadcastPattern(nil, []byte{0, 2, 3}))
+			// log.Println("norm_weight ", norm_weight)
+			norm, _, _, _, _ := gorgonia.BatchNorm(x, initial_tensor(g, x, 1, "scale"), m.normWeights[i], 0, 0.001)
+			log.Println("norm_weight ", norm.Shape())
+			// x_w1, _ := gorgonia.BroadcastHadamardProd(x, m.w1Weights[i], nil, []byte{0, 1, 2, 3})
+			// w2_norm, _ := gorgonia.BroadcastHadamardProd(norm, m.w2Weights[i], nil, []byte{0, 1, 2, 3})
+			// x, _ = gorgonia.Add(x_w1, w2_norm)
 			if x, err = gorgonia.LeakyRelu(x, 0.2); err != nil {
 				return errors.Wrap(err, "Layer 0 activation failed")
 			}
@@ -151,12 +155,12 @@ func (m *convnet) fwd(g *gorgonia.ExprGraph, x *gorgonia.Node, n_layers int, ksz
 	if x, err = gorgonia.Conv2d(x, m.convWeights[n_layers], tensor.Shape{1, ksz}, []int{0, 1}, []int{1, 1}, []int{1, 1}); err != nil {
 		return errors.Wrap(err, "Layer 0 Convolution failed")
 	}
-	// norm := batch_norm.Batch_normalization(g, x, m.normWeights[n_layers], 0.001, "layer"+strconv.FormatInt(int64(n_layers), 10))
-	_, norm_weight, _ := gorgonia.Broadcast(x, m.normWeights[n_layers], gorgonia.NewBroadcastPattern(nil, []byte{0, 2, 3}))
-	norm, _, _, _, _ := gorgonia.BatchNorm(x, initial_tensor(g, x, 1, "scale"), norm_weight, 0, 0.001)
-	x_w1, _ := gorgonia.BroadcastHadamardProd(x, m.w1Weights[n_layers], nil, []byte{0, 1, 2, 3})
-	w2_norm, _ := gorgonia.BroadcastHadamardProd(norm, m.w2Weights[n_layers], nil, []byte{0, 1, 2, 3})
-	x, _ = gorgonia.Add(x_w1, w2_norm)
+	// _, norm_weight, _ := gorgonia.Broadcast(x, m.normWeights[n_layers], gorgonia.NewBroadcastPattern(nil, []byte{0, 2, 3}))
+	norm, _, _, _, _ := gorgonia.BatchNorm(x, initial_tensor(g, x, 1, "scale"), m.normWeights[n_layers], 0, 0.001)
+	log.Println("norm_weight ", norm.Shape())
+	// x_w1, _ := gorgonia.BroadcastHadamardProd(x, m.w1Weights[n_layers], nil, []byte{0, 1, 2, 3})
+	// w2_norm, _ := gorgonia.BroadcastHadamardProd(norm, m.w2Weights[n_layers], nil, []byte{0, 1, 2, 3})
+	// x, _ = gorgonia.Add(x_w1, w2_norm)
 	if x, err = gorgonia.LeakyRelu(x, 0.2); err != nil {
 		return errors.Wrap(err, "Layer 0 activation failed")
 	}
@@ -261,9 +265,9 @@ func main() {
 	var sub_array []float64
 	var sample float64
 
-	for i := 0; i < len(audio_array); i += 2000 {
-		if i+2000 < len(audio_array) {
-			sub_array = audio_array[i : i+2000]
+	for i := 0; i < len(audio_array); i += 4000 {
+		if i+4000 < len(audio_array) {
+			sub_array = audio_array[i : i+4000]
 		} else {
 			sub_array = audio_array[i:len(audio_array)]
 		}

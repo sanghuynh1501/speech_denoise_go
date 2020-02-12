@@ -229,6 +229,5 @@ func Batch_normalization(g *gorgonia.ExprGraph, X *gorgonia.Node, beta *gorgonia
 	if err := mv.RunAll(); err != nil {
 		log.Fatal(err)
 	}
-
 	return gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(result.Shape()[0], result.Shape()[1], result.Shape()[2], result.Shape()[3]), gorgonia.WithName("batch_norm"+name), array_inintial(tensor.WithShape(result.Shape()[0], result.Shape()[1], result.Shape()[2], result.Shape()[3]), result.Value().Data().([]float64)))
 }
