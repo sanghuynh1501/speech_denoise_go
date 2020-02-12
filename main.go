@@ -96,16 +96,16 @@ func newConvNet(g *gorgonia.ExprGraph, n_layers int, n_channels int, ksz int, we
 	}
 
 	var w *gorgonia.Node
-	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, in_channels, in_channels, 4000), gorgonia.WithName("conv_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, in_channels, in_channels, 1), weights_array[n_layers+1].Conv2D))
+	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, in_channels, 1, 1), gorgonia.WithName("conv_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, in_channels, 1, 1), weights_array[n_layers+1].Conv2D))
 	convWeights = append(convWeights, w)
 
-	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("norm_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 4000), weights_array[n_layers+1].BatchNorm))
+	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, 4000), gorgonia.WithName("norm_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, 1, 1, 4000), weights_array[n_layers+1].BatchNorm))
 	normWeights = append(normWeights, w)
 
-	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w1_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 4000), weights_array[n_layers+1].W0))
+	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, 4000), gorgonia.WithName("w1_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, 1, 1, 4000), weights_array[n_layers+1].W0))
 	w1Weights = append(w1Weights, w)
 
-	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w2_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 4000), weights_array[n_layers+1].W1))
+	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, 4000), gorgonia.WithName("w2_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, 1, 1, 4000), weights_array[n_layers+1].W1))
 	w2Weights = append(w2Weights, w)
 
 	return &convnet{
@@ -168,7 +168,7 @@ func (m *convnet) fwd(g *gorgonia.ExprGraph, x *gorgonia.Node, n_layers int, ksz
 	if x, err = gorgonia.Conv2d(x, m.convWeights[n_layers+1], tensor.Shape{1, 1}, []int{0, 0}, []int{1, 1}, []int{1, 1}); err != nil {
 		return errors.Wrap(err, "Layer 0 Convolution failed")
 	}
-	x, err = gorgonia.BroadcastAdd(x, m.normWeights[n_layers+1], nil, []byte{0, 2, 3})
+	x, err = gorgonia.Add(x, m.normWeights[n_layers+1])
 
 	m.out = x
 	gorgonia.Read(m.out, &m.predVal)
