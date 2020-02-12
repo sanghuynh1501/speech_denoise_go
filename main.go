@@ -23,6 +23,7 @@ import (
 	"gorgonia.org/tensor"
 )
 
+////////////////////////////////
 type convnet struct {
 	g           *gorgonia.ExprGraph
 	w1Weights   []*gorgonia.Node // weights. the number at the back indicates which layer it's used for
