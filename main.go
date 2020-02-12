@@ -83,13 +83,13 @@ func newConvNet(g *gorgonia.ExprGraph, n_layers int, n_channels int, ksz int, we
 		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(n_channels, in_channels, 1, ksz), gorgonia.WithName("conv_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(n_channels, in_channels, 1, ksz), weights_array[i].Conv2D))
 		convWeights = append(convWeights, w)
 
-		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("norm_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, in_channels, 4000), weights_array[i].BatchNorm))
+		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("norm_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 4000), weights_array[i].BatchNorm))
 		normWeights = append(normWeights, w)
 
-		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w1_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, in_channels, 4000), weights_array[i].W0))
+		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w1_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 4000), weights_array[i].W0))
 		w1Weights = append(w1Weights, w)
 
-		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w2_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, in_channels, 4000), weights_array[i].W1))
+		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w2_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 4000), weights_array[i].W1))
 		w2Weights = append(w2Weights, w)
 
 		in_channels = n_channels
@@ -99,13 +99,13 @@ func newConvNet(g *gorgonia.ExprGraph, n_layers int, n_channels int, ksz int, we
 	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, in_channels, in_channels, 4000), gorgonia.WithName("conv_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, in_channels, in_channels, 1), weights_array[n_layers+1].Conv2D))
 	convWeights = append(convWeights, w)
 
-	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("norm_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, n_channels, in_channels, 4000), weights_array[n_layers+1].BatchNorm))
+	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("norm_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 4000), weights_array[n_layers+1].BatchNorm))
 	normWeights = append(normWeights, w)
 
-	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w1_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, n_channels, in_channels, 4000), weights_array[n_layers+1].W0))
+	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w1_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 4000), weights_array[n_layers+1].W0))
 	w1Weights = append(w1Weights, w)
 
-	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w2_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, n_channels, in_channels, 4000), weights_array[n_layers+1].W1))
+	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w2_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 4000), weights_array[n_layers+1].W1))
 	w2Weights = append(w2Weights, w)
 
 	return &convnet{
