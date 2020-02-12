@@ -122,17 +122,16 @@ func (m *convnet) fwd(g *gorgonia.ExprGraph, x *gorgonia.Node, n_layers int, ksz
 			if x, err = gorgonia.Conv2d(x, m.convWeights[i], tensor.Shape{1, ksz}, []int{0, 1}, []int{1, 1}, []int{1, 1}); err != nil {
 				return errors.Wrap(err, "Layer 0 Convolution failed")
 			}
-
 			// norm := batch_norm.Batch_normalization(g, x, m.normWeights[i], 0.001, "layer"+strconv.FormatInt(int64(i), 10))
 			_, norm_weight, _ := gorgonia.Broadcast(x, m.normWeights[i], gorgonia.NewBroadcastPattern(nil, []byte{0, 2, 3}))
 			norm, _, _, _, _ := gorgonia.BatchNorm(x, initial_tensor(g, x, 1, "scale"), norm_weight, 0, 0.001)
-
-			if x, err = gorgonia.LeakyRelu(x, 0.2); err != nil {
-				return errors.Wrap(err, "Layer 0 activation failed")
-			}
 			x_w1, _ := gorgonia.BroadcastHadamardProd(x, m.w1Weights[i], nil, []byte{0, 1, 2, 3})
 			w2_norm, _ := gorgonia.BroadcastHadamardProd(norm, m.w2Weights[i], nil, []byte{0, 1, 2, 3})
 			x, _ = gorgonia.Add(x_w1, w2_norm)
+			if x, err = gorgonia.LeakyRelu(x, 0.2); err != nil {
+				return errors.Wrap(err, "Layer 0 activation failed")
+			}
+
 		} else {
 			if x, err = gorgonia.Conv2d(x, m.convWeights[i], tensor.Shape{1, ksz}, []int{0, int(math.Pow(2, float64(i)))}, []int{1, 1}, []int{1, int(math.Pow(2, float64(i)))}); err != nil {
 				return errors.Wrap(err, "Layer 0 Convolution failed")
