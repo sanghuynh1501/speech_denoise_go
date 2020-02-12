@@ -1,16 +1,17 @@
 package main
 
 import (
+	"bytes"
+	"encoding/base64"
 	"io"
 	"log"
 	"math"
 	_ "net/http/pprof"
 	"os"
 	"speech_denoise_go/dtype"
+	"strings"
+	"syscall/js"
 
-	// "syscall/js"
-
-	// batch_norm "speech_denoise_go/norm"
 	"speech_denoise_go/weight"
 	"strconv"
 
@@ -37,14 +38,20 @@ func array_inintial(shape tensor.ConsOpt, input []float64) gorgonia.NodeConsOpt 
 	return gorgonia.WithValue(image)
 }
 
+var in_channels int
+var w *gorgonia.Node
+
+var convWeights []*gorgonia.Node
+var normWeights []*gorgonia.Node
+var w1Weights []*gorgonia.Node
+var w2Weights []*gorgonia.Node
+var gamma *gorgonia.Node
+
 func newConvNet(g *gorgonia.ExprGraph, n_layers int, n_channels int, ksz int, weights_array []weight.Weight) *convnet {
-	var convWeights []*gorgonia.Node
-	var normWeights []*gorgonia.Node
-	var w1Weights []*gorgonia.Node
-	var w2Weights []*gorgonia.Node
-	var gamma *gorgonia.Node
-	var in_channels int
-	var w *gorgonia.Node
+	convWeights = []*gorgonia.Node{}
+	normWeights = []*gorgonia.Node{}
+	w1Weights = []*gorgonia.Node{}
+	w2Weights = []*gorgonia.Node{}
 
 	in_channels = 1
 	gamma = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 2000), gorgonia.WithName("gamma"+strconv.FormatInt(int64(0), 10)), gorgonia.WithInit(gorgonia.Ones()))
@@ -86,8 +93,9 @@ func newConvNet(g *gorgonia.ExprGraph, n_layers int, n_channels int, ksz int, we
 	}
 }
 
+var norm, x_w1, w2_norm *gorgonia.Node
+
 func (m *convnet) fwd(g *gorgonia.ExprGraph, x *gorgonia.Node, n_layers int, ksz int) (err error) {
-	var norm, x_w1, w2_norm *gorgonia.Node
 
 	for i := 0; i < n_layers; i++ {
 		if i == 0 {
@@ -130,27 +138,27 @@ func floatToString(input_num float64, number int) string {
 
 var audio_array []float64
 
-// func getAudio() {
-// 	doc := js.Global().Get("document")
-// 	image_element := doc.Call("getElementById", "predict_source")
-// 	audio_base64 := image_element.Get("src")
-// 	coI := strings.Index(audio_base64.String(), ",")
-// 	raw_audio := audio_base64.String()[coI+1:]
+func getAudio() {
+	doc := js.Global().Get("document")
+	image_element := doc.Call("getElementById", "predict_source")
+	audio_base64 := image_element.Get("src")
+	coI := strings.Index(audio_base64.String(), ",")
+	raw_audio := audio_base64.String()[coI+1:]
 
-// 	unbased, _ := base64.StdEncoding.DecodeString(string(raw_audio))
-// 	res := bytes.NewReader(unbased)
-// 	reader := wav.NewReader(res)
-// 	for {
-// 		samples, err := reader.ReadSamples()
-// 		if err == io.EOF {
-// 			break
-// 		}
+	unbased, _ := base64.StdEncoding.DecodeString(string(raw_audio))
+	res := bytes.NewReader(unbased)
+	reader := wav.NewReader(res)
+	for {
+		samples, err := reader.ReadSamples()
+		if err == io.EOF {
+			break
+		}
 
-// 		for _, sample := range samples {
-// 			audio_array = append(audio_array, reader.FloatValue(sample, 0)*2)
-// 		}
-// 	}
-// }
+		for _, sample := range samples {
+			audio_array = append(audio_array, reader.FloatValue(sample, 0)*2)
+		}
+	}
+}
 
 var xValue *gorgonia.Node
 var g *gorgonia.ExprGraph
@@ -159,8 +167,8 @@ var err error
 
 func predict(weights_array []weight.Weight, n_layers int, ksz int, input []float64) []float64 {
 	g = gorgonia.NewGraph()
-	m = newConvNet(g, n_layers, 64, ksz, weights_array)
 	xValue = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, len(input)), gorgonia.WithName("xValue"), array_inintial(tensor.WithShape(1, 1, 1, len(input)), input))
+	m = newConvNet(g, n_layers, 64, ksz, weights_array)
 	if err = m.fwd(g, xValue, n_layers, ksz); err != nil {
 		log.Fatalf("%+v", err)
 	}
@@ -171,6 +179,7 @@ func predict(weights_array []weight.Weight, n_layers int, ksz int, input []float
 	}
 	xValue = nil
 	return m.out.Value().Data().([]float64)
+	// return []float64{}
 }
 
 func readAudio() {
@@ -192,13 +201,13 @@ func readAudio() {
 
 }
 
-// func update_percent(percent float64) {
-// 	doc := js.Global().Get("document")
-// 	percent_elements := doc.Call("getElementsByClassName", "ant-progress-bg")
-// 	percent_elements.Index(0).Get("style").Set("width", floatToString(percent*100, 1)+"%")
-// 	text_elements := doc.Call("getElementsByClassName", "ant-progress-text")
-// 	text_elements.Index(0).Set("innerHTML", floatToString(percent*100, 1)+"%")
-// }
+func update_percent(percent float64) {
+	doc := js.Global().Get("document")
+	percent_elements := doc.Call("getElementsByClassName", "ant-progress-bg")
+	percent_elements.Index(0).Get("style").Set("width", floatToString(percent*100, 1)+"%")
+	text_elements := doc.Call("getElementsByClassName", "ant-progress-text")
+	text_elements.Index(0).Set("innerHTML", floatToString(percent*100, 1)+"%")
+}
 
 func main() {
 	dtype.Init_dtype()
@@ -207,8 +216,8 @@ func main() {
 	n_layers := 13
 	ksz := 3
 
-	// getAudio()
-	readAudio()
+	getAudio()
+	// readAudio()
 
 	var predict_array []float64
 	var result_array []string
@@ -216,6 +225,7 @@ func main() {
 	var sample float64
 
 	for len(audio_array) > 0 {
+		log.Println("start")
 		if len(audio_array) > 2000 {
 			sub_array = audio_array[:2000]
 			audio_array = audio_array[2000:]
@@ -239,5 +249,5 @@ func main() {
 	}
 
 	log.Println("result_array ", result_array)
-	// js.Global().Set("result", strings.Join(result_array, ","))
+	js.Global().Set("result", strings.Join(result_array, ","))
 }
