@@ -12,10 +12,10 @@ import (
 var W_Data Data
 
 type Weight struct {
-	Conv2D    []float64
-	W0        []float64
-	W1        []float64
-	BatchNorm []float64
+	Conv2D    []float32
+	W0        []float32
+	W1        []float32
+	BatchNorm []float32
 }
 
 type Data struct {
@@ -23,7 +23,7 @@ type Data struct {
 }
 
 func Load() {
-	dataFile, err_file_out := openuri.Open("http://localhost:3000/integerdata.gob")
+	dataFile, err_file_out := openuri.Open("http://localhost:3000/weights.gob")
 	// dataFile, err_file_out := os.Open("integerdata.gob")
 	if err_file_out != nil {
 		fmt.Println(err_file_out)

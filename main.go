@@ -33,7 +33,7 @@ type convnet struct {
 
 var image tensor.Tensor
 
-func array_inintial(shape tensor.ConsOpt, input []float64) gorgonia.NodeConsOpt {
+func array_inintial(shape tensor.ConsOpt, input []float32) gorgonia.NodeConsOpt {
 	image = tensor.New(shape, tensor.WithBacking(input))
 	return gorgonia.WithValue(image)
 }
@@ -54,18 +54,18 @@ func newConvNet(g *gorgonia.ExprGraph, n_layers int, n_channels int, ksz int, we
 	w2Weights = []*gorgonia.Node{}
 
 	in_channels = 1
-	gamma = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 2000), gorgonia.WithName("gamma"+strconv.FormatInt(int64(0), 10)), gorgonia.WithInit(gorgonia.Ones()))
+	gamma = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("gamma"+strconv.FormatInt(int64(0), 10)), gorgonia.WithInit(gorgonia.Ones()))
 	for i := 0; i < n_layers+1; i++ {
 		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(n_channels, in_channels, 1, ksz), gorgonia.WithName("conv_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(n_channels, in_channels, 1, ksz), weights_array[i].Conv2D))
 		convWeights = append(convWeights, w)
 
-		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 2000), gorgonia.WithName("norm_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 2000), weights_array[i].BatchNorm))
+		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("norm_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 4000), weights_array[i].BatchNorm))
 		normWeights = append(normWeights, w)
 
-		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 2000), gorgonia.WithName("w1_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 2000), weights_array[i].W0))
+		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w1_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 4000), weights_array[i].W0))
 		w1Weights = append(w1Weights, w)
 
-		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 2000), gorgonia.WithName("w2_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 2000), weights_array[i].W1))
+		w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, n_channels, 1, 4000), gorgonia.WithName("w2_w"+strconv.FormatInt(int64(i), 10)), array_inintial(tensor.WithShape(1, n_channels, 1, 4000), weights_array[i].W1))
 		w2Weights = append(w2Weights, w)
 
 		in_channels = n_channels
@@ -74,13 +74,13 @@ func newConvNet(g *gorgonia.ExprGraph, n_layers int, n_channels int, ksz int, we
 	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, in_channels, 1, 1), gorgonia.WithName("conv_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, in_channels, 1, 1), weights_array[n_layers+1].Conv2D))
 	convWeights = append(convWeights, w)
 
-	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, 2000), gorgonia.WithName("norm_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, 1, 1, 2000), weights_array[n_layers+1].BatchNorm))
+	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, 4000), gorgonia.WithName("norm_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, 1, 1, 4000), weights_array[n_layers+1].BatchNorm))
 	normWeights = append(normWeights, w)
 
-	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, 2000), gorgonia.WithName("w1_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, 1, 1, 2000), weights_array[n_layers+1].W0))
+	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, 4000), gorgonia.WithName("w1_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, 1, 1, 4000), weights_array[n_layers+1].W0))
 	w1Weights = append(w1Weights, w)
 
-	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, 2000), gorgonia.WithName("w2_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, 1, 1, 2000), weights_array[n_layers+1].W1))
+	w = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, 4000), gorgonia.WithName("w2_w"+strconv.FormatInt(int64(n_layers+1), 10)), array_inintial(tensor.WithShape(1, 1, 1, 4000), weights_array[n_layers+1].W1))
 	w2Weights = append(w2Weights, w)
 
 	return &convnet{
@@ -136,7 +136,7 @@ func floatToString(input_num float64, number int) string {
 	return strconv.FormatFloat(input_num, 'f', number, 64)
 }
 
-var audio_array []float64
+var audio_array []float32
 
 func getAudio() {
 	doc := js.Global().Get("document")
@@ -155,7 +155,7 @@ func getAudio() {
 		}
 
 		for _, sample := range samples {
-			audio_array = append(audio_array, reader.FloatValue(sample, 0)*2)
+			audio_array = append(audio_array, float32(reader.FloatValue(sample, 0)*2))
 		}
 	}
 }
@@ -165,7 +165,7 @@ var g *gorgonia.ExprGraph
 var m *convnet
 var err error
 
-func predict(weights_array []weight.Weight, n_layers int, ksz int, input []float64) []float64 {
+func predict(weights_array []weight.Weight, n_layers int, ksz int, input []float32) []float32 {
 	g = gorgonia.NewGraph()
 	xValue = gorgonia.NewTensor(g, dtype.Dt, 4, gorgonia.WithShape(1, 1, 1, len(input)), gorgonia.WithName("xValue"), array_inintial(tensor.WithShape(1, 1, 1, len(input)), input))
 	m = newConvNet(g, n_layers, 64, ksz, weights_array)
@@ -178,8 +178,8 @@ func predict(weights_array []weight.Weight, n_layers int, ksz int, input []float
 		log.Fatal(err)
 	}
 	xValue = nil
-	return m.out.Value().Data().([]float64)
-	// return []float64{}
+	return m.out.Value().Data().([]float32)
+	// return []float32{}
 }
 
 func readAudio() {
@@ -195,18 +195,18 @@ func readAudio() {
 		}
 
 		for _, sample := range samples {
-			audio_array = append(audio_array, reader.FloatValue(sample, 0)*2)
+			audio_array = append(audio_array, float32(reader.FloatValue(sample, 0)*2))
 		}
 	}
 
 }
 
-func update_percent(percent float64) {
+func update_percent(percent float32) {
 	doc := js.Global().Get("document")
 	percent_elements := doc.Call("getElementsByClassName", "ant-progress-bg")
-	percent_elements.Index(0).Get("style").Set("width", floatToString(percent*100, 1)+"%")
+	percent_elements.Index(0).Get("style").Set("width", floatToString(float64(percent*100), 1)+"%")
 	text_elements := doc.Call("getElementsByClassName", "ant-progress-text")
-	text_elements.Index(0).Set("innerHTML", floatToString(percent*100, 1)+"%")
+	text_elements.Index(0).Set("innerHTML", floatToString(float64(percent*100), 1)+"%")
 }
 
 func main() {
@@ -219,35 +219,36 @@ func main() {
 	getAudio()
 	// readAudio()
 
-	var predict_array []float64
+	var predict_array []float32
 	var result_array []string
-	var sub_array []float64
-	var sample float64
+	var sub_array []float32
+	var sample float32
+	var len_audio = len(audio_array)
 
 	for len(audio_array) > 0 {
-		log.Println("start")
-		if len(audio_array) > 2000 {
-			sub_array = audio_array[:2000]
-			audio_array = audio_array[2000:]
+		log.Println("process ", floatToString(float64(len(result_array))/float64(len_audio)*100, 1)+"%")
+		if len(audio_array) > 4000 {
+			sub_array = audio_array[:4000]
+			audio_array = audio_array[4000:]
 		} else {
 			sub_array = audio_array[:len(audio_array)]
-			audio_array = []float64{}
+			audio_array = []float32{}
 		}
-		for len(sub_array) < 2000 {
+		for len(sub_array) < 4000 {
 			sub_array = append(sub_array, 0)
 		}
 		predict_array = predict(weight.W_Data.Weights, n_layers, ksz, sub_array)
 		for _, sample = range predict_array {
-			result_array = append(result_array, floatToString(sample, 18))
+			result_array = append(result_array, floatToString(float64(sample), 18))
 		}
-		// percent := float64(len(result_array)) / float64(len(audio_array))
+		// percent := float32(len(result_array)) / float32(len(audio_array))
 		// update_percent(percent)
 
 		predict_array = nil
 		sub_array = nil
 		m = nil
 	}
+	log.Println("complete")
 
-	log.Println("result_array ", result_array)
 	js.Global().Set("result", strings.Join(result_array, ","))
 }

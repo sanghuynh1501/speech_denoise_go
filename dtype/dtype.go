@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	dtype = flag.String("dtype", "float64", "Which dtype to use")
+	dtype = flag.String("dtype", "float32", "Which dtype to use")
 )
 
 var Dt tensor.Dtype
