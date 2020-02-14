@@ -1,1 +1,5 @@
-# speech_denoise_go
+### Generate main.wasm file:
+run 
+```
+GOOS=js GOARCH=wasm go build -o main.wasm
+```
